@@ -1,0 +1,283 @@
+<title>Serbian Translator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* One narrow column: direction switch, input, then the dictionary entry. */
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --fg: #16202e;
+    --muted: #5d6b7e;
+    --line: #dde2ea;
+    --accent: #1f4fbf;
+    --accent-fg: #ffffff;
+    --mark: #e8eefc;
+    --danger: #b3261e;
+    --font-display: "Literata", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10151d; --surface: #18202b; --fg: #e9edf3; --muted: #95a2b4; --line: #2a3442;
+      --accent: #7ea3ff; --accent-fg: #0b1220; --mark: #1f2c47; --danger: #ff8a80; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10151d; --surface: #18202b; --fg: #e9edf3; --muted: #95a2b4; --line: #2a3442;
+    --accent: #7ea3ff; --accent-fg: #0b1220; --mark: #1f2c47; --danger: #ff8a80; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.55 var(--font-body);
+    padding-block: 28px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 560px; margin: 0 auto; display: grid; gap: 18px; }
+
+  .dirs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dirs button {
+    font: 500 14px/1 var(--font-body);
+    color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .dirs button:hover { border-color: var(--accent); }
+  .dirs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .field { display: flex; gap: 8px; }
+  #text {
+    flex: 1; min-width: 0;
+    font: 17px/1.3 var(--font-body);
+    color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  #text:focus { border-color: var(--accent); outline: none; }
+  #go {
+    font: 600 15px/1 var(--font-body);
+    background: var(--accent); color: var(--accent-fg);
+    border: 0; border-radius: 12px; padding: 0 18px; cursor: pointer;
+  }
+  #go:disabled { opacity: .55; cursor: default; }
+  .keys { color: var(--muted); font-size: 12.5px; margin: -8px 0 0; }
+
+  .entry {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 22px 8px;
+    display: grid; gap: 4px;
+  }
+  .tag {
+    justify-self: start;
+    font: 600 11px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 8px; margin-bottom: 6px;
+  }
+  .headword { font: 600 34px/1.15 var(--font-display); margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+  .grammar { color: var(--muted); font-style: italic; margin: 0; }
+  .alts { color: var(--muted); margin: 0; font-size: 14px; }
+  .entry h2 {
+    font: 600 11.5px/1 var(--font-body); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); margin: 18px 0 4px;
+  }
+  .examples { list-style: none; margin: 0; padding: 0; }
+  .examples li { padding: 12px 0; border-top: 1px solid var(--line); display: grid; gap: 2px; }
+  .examples li:first-child { border-top: 0; }
+  .sr { font: 500 16.5px/1.45 var(--font-display); overflow-wrap: anywhere; }
+  .sr strong { background: var(--mark); border-radius: 4px; padding: 0 3px; font-weight: 600; }
+  .other { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+
+  .status { margin: 0; color: var(--muted); }
+  .status.error { color: var(--danger); }
+  .thinking::after { content: "…"; animation: dots 1.2s steps(4, end) infinite; display: inline-block; width: 1.2em; overflow: hidden; vertical-align: bottom; }
+  @keyframes dots { from { width: 0; } }
+  @media (prefers-reduced-motion: reduce) { .thinking::after { animation: none; } }
+</style>
+
+<div class="wrap">
+  <nav class="dirs" aria-label="Translation direction">
+    <button type="button" data-dir="tr-sr">TR → SR</button>
+    <button type="button" data-dir="en-sr">EN → SR</button>
+    <button type="button" data-dir="sr-en">SR → EN</button>
+    <button type="button" data-dir="sr-tr">SR → TR</button>
+  </nav>
+
+  <form class="field" id="form" autocomplete="off">
+    <input id="text" type="text" spellcheck="false" placeholder="Type a word and press Enter" aria-label="Word or phrase">
+    <button id="go" type="submit">Translate</button>
+  </form>
+  <p class="keys">Alt+1–4 switches direction. Serbian is always shown in Latin script.</p>
+
+  <p id="status" class="status" role="status" hidden></p>
+
+  <article id="entry" class="entry" aria-live="polite">
+    <span id="tag" class="tag">Example</span>
+    <p id="headword" class="headword">knjiga</p>
+    <p id="grammar" class="grammar">noun, f.</p>
+    <p id="alts" class="alts">also: sveska</p>
+    <h2>Examples</h2>
+    <ul id="examples" class="examples">
+      <li><span class="sr">Čitam zanimljivu <strong>knjigu</strong>.</span><span class="other">İlginç bir kitap okuyorum.</span></li>
+      <li><span class="sr">Ova <strong>knjiga</strong> je moja.</span><span class="other">Bu kitap benim.</span></li>
+      <li><span class="sr">Kupio sam novu <strong>knjigu</strong>.</span><span class="other">Yeni bir kitap aldım.</span></li>
+    </ul>
+  </article>
+</div>
+
+<script>
+const DIRECTIONS = {
+  "tr-sr": ["Turkish", "Serbian"],
+  "en-sr": ["English", "Serbian"],
+  "sr-en": ["Serbian", "English"],
+  "sr-tr": ["Serbian", "Turkish"],
+};
+const ORDER = ["tr-sr", "en-sr", "sr-en", "sr-tr"];
+const ERRORS = {
+  not_granted: "Allow this page to use Claude to translate (it uses your own Claude plan).",
+  sampling_disabled: "Claude isn't available for this account.",
+  rate_limited: "You've reached your Claude usage limit for now. Try again later.",
+  session_expired: "Sign in to Claude again, then retry.",
+  refused: "Claude didn't translate this. Try a different word.",
+  invalid_json: "Couldn't read the answer. Try again.",
+  bad_answer: "Couldn't read the answer. Try again.",
+  empty_completion: "Couldn't read the answer. Try again.",
+  upstream_error: "Couldn't reach Claude. Check your connection and try again.",
+  unavailable: "Translation works when this page is opened on claude.ai or in the Claude app.",
+};
+
+const CYR = { "а":"a","б":"b","в":"v","г":"g","д":"d","ђ":"đ","е":"e","ж":"ž","з":"z","и":"i","ј":"j","к":"k","л":"l","љ":"lj","м":"m","н":"n","њ":"nj","о":"o","п":"p","р":"r","с":"s","т":"t","ћ":"ć","у":"u","ф":"f","х":"h","ц":"c","ч":"č","џ":"dž","ш":"š" };
+for (const [c, l] of Object.entries(CYR)) CYR[c.toUpperCase()] = l[0].toUpperCase() + l.slice(1);
+const toLatin = (s) => Array.from(s, (ch) => CYR[ch] ?? ch).join("");
+
+const $ = (id) => document.getElementById(id);
+const text = $("text");
+let direction = "tr-sr";
+let ctl = null;
+let samplePromise = null;
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+const rich = (s) => escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+
+function setDirection(dir) {
+  direction = dir;
+  for (const b of document.querySelectorAll(".dirs button")) b.setAttribute("aria-pressed", String(b.dataset.dir === dir));
+  try { localStorage.setItem("direction", dir); } catch {}
+  ctl?.abort();
+  text.focus();
+}
+
+function showStatus(message, { error = false, thinking = false } = {}) {
+  const s = $("status");
+  s.hidden = !message;
+  s.textContent = message;
+  s.classList.toggle("error", error);
+  s.classList.toggle("thinking", thinking);
+}
+
+function str(v) { return typeof v === "string" ? v.trim() : null; }
+
+// Mirrors translator.parse_result in the desktop app.
+function parseResult(raw, dir) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  let translation = str(raw.translation);
+  if (!translation) return null;
+  const grammar = toLatin(str(raw.grammar) || "") || null;
+  if (!Array.isArray(raw.alternatives)) return null;
+  let alternatives = raw.alternatives.map(str).filter(Boolean).slice(0, 2);
+  if (!Array.isArray(raw.examples) || raw.examples.length !== 3) return null;
+  const examples = [];
+  for (const ex of raw.examples) {
+    const sr = str(ex?.serbian), other = str(ex?.other);
+    if (!sr || !other) return null;
+    examples.push({ serbian: toLatin(sr), other });
+  }
+  if (DIRECTIONS[dir][1] === "Serbian") {
+    translation = toLatin(translation);
+    alternatives = alternatives.map(toLatin);
+  }
+  return { translation, grammar, alternatives, examples };
+}
+
+function render(r) {
+  $("tag").hidden = true;
+  $("headword").innerHTML = rich(r.translation);
+  $("grammar").textContent = r.grammar || "";
+  $("grammar").hidden = !r.grammar;
+  $("alts").textContent = r.alternatives.length ? "also: " + r.alternatives.join(", ") : "";
+  $("alts").hidden = !r.alternatives.length;
+  $("examples").innerHTML = r.examples
+    .map((e) => `<li><span class="sr">${rich(e.serbian)}</span><span class="other">${rich(e.other)}</span></li>`)
+    .join("");
+  $("entry").hidden = false;
+}
+
+function prompt(dir, word) {
+  const [src, tgt] = DIRECTIONS[dir];
+  const other = src === "Serbian" ? tgt : src;
+  return `You are a concise ${src}→${tgt} dictionary for a learner.
+Translate the word or short phrase below from ${src} to ${tgt}.
+Always write Serbian in Latin script, never Cyrillic. Serbian input may be written in Latin or Cyrillic.
+Reply with only a JSON object of this shape:
+{"translation": string, "grammar": string, "alternatives": [string], "examples": [{"serbian": string, "other": string}]}
+translation: the most common translation.
+grammar: for a single word, a short English hint like "noun, f." or "verb, imperfective"; empty string for phrases.
+alternatives: up to 2 other common translations, or an empty list.
+examples: exactly 3 short, natural Serbian sentences using the translation, with the Serbian word wrapped in **double asterisks**; "other" is each sentence translated into ${other}.
+
+${src} input: ${word}`;
+}
+
+async function lookup() {
+  const word = text.value.trim();
+  if (!word) return;
+  const sample = await samplePromise;
+  if (!sample) { showStatus(ERRORS.unavailable, { error: true }); return; }
+  ctl?.abort();
+  const mine = (ctl = new AbortController());
+  const dir = direction;
+  $("go").disabled = true;
+  $("entry").hidden = true;
+  showStatus("Translating", { thinking: true });
+  try {
+    const raw = await sample.json(prompt(dir, word), { modelTier: "quick", signal: mine.signal });
+    const r = parseResult(raw, dir);
+    if (!r) throw { code: "bad_answer" };
+    showStatus("");
+    render(r);
+  } catch (e) {
+    if (e?.code === "cancelled") return;
+    showStatus(ERRORS[e?.code] || "Something went wrong. Try again.", { error: true });
+  } finally {
+    if (ctl === mine) $("go").disabled = false;
+  }
+}
+
+for (const b of document.querySelectorAll(".dirs button")) b.addEventListener("click", () => setDirection(b.dataset.dir));
+document.addEventListener("keydown", (e) => {
+  if ((e.altKey || e.ctrlKey) && ["1", "2", "3", "4"].includes(e.key)) {
+    e.preventDefault();
+    setDirection(ORDER[Number(e.key) - 1]);
+  }
+});
+$("form").addEventListener("submit", (e) => { e.preventDefault(); lookup(); });
+
+let saved = null;
+try { saved = localStorage.getItem("direction"); } catch {}
+setDirection(DIRECTIONS[saved] ? saved : "tr-sr");
+samplePromise = window.claude?.use ? window.claude.use("sample") : Promise.resolve(null);
+</script>

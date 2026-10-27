@@ -20,7 +20,7 @@ class Api:
         self._settings = settings.load(self._path)
         self._client = None
         if self._settings["api_key"]:
-            self._client = client_factory(api_key=self._settings["api_key"])
+            self._client = client_factory(api_key=self._settings["api_key"], max_retries=0)
 
     def get_state(self) -> dict:
         return {"has_key": self._client is not None, "direction": self._settings["direction"]}
@@ -31,7 +31,7 @@ class Api:
             return {"ok": False}
         self._settings["api_key"] = key
         settings.save(self._path, self._settings)
-        self._client = self._client_factory(api_key=key)
+        self._client = self._client_factory(api_key=key, max_retries=0)
         return {"ok": True}
 
     def set_direction(self, direction: str) -> None:

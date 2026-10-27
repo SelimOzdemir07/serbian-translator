@@ -8,7 +8,7 @@ R = Result("knjiga", None, [], [Example("**knjiga**", "kitap")] * 3)
 def make(tmp_path, fn=lambda c, d, t: R):
     made = []
     api = Api(tmp_path / "s.json",
-              client_factory=lambda api_key: made.append(api_key) or object(),
+              client_factory=lambda api_key, **_: made.append(api_key) or object(),
               translate_fn=fn)
     return api, made
 
@@ -65,3 +65,11 @@ def test_unexpected_exception_is_other(tmp_path):
     api, _ = make(tmp_path, boom)
     api.save_key("k")
     assert api.translate("tr-sr", " ") == {"ok": False, "error": "other"}
+
+
+def test_client_built_without_retries(tmp_path):
+    # SDK retries would stretch the 15 s timeout to ~47 s before "Took too long"
+    kws = []
+    api = Api(tmp_path / "s.json", client_factory=lambda **kw: kws.append(kw) or object())
+    api.save_key("k")
+    assert kws == [{"api_key": "k", "max_retries": 0}]

@@ -61,7 +61,7 @@ def parse_result(tool_input: dict, direction: str) -> Result:
     grammar = tool_input.get("grammar")
     if grammar is not None and not isinstance(grammar, str):
         raise BadAnswer("grammar must be a string")
-    grammar = (grammar or "").strip() or None
+    grammar = to_latin((grammar or "").strip()) or None
 
     alternatives = tool_input.get("alternatives")
     if not isinstance(alternatives, list) or not all(isinstance(a, str) for a in alternatives):

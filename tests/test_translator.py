@@ -153,3 +153,7 @@ def test_no_tool_block_is_bad_answer():
     with pytest.raises(TranslateError) as e:
         translate(c, "tr-sr", "kitap")
     assert e.value.kind == "bad_answer"
+
+
+def test_cyrillic_grammar_is_transliterated():
+    assert parse_result(valid(grammar="именица, ж."), "sr-en").grammar == "imenica, ž."

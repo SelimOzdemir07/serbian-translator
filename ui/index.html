@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Serbian Translator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="bar">
+    <nav class="dirs">
+      <button data-dir="tr-sr">TR→SR</button>
+      <button data-dir="en-sr">EN→SR</button>
+      <button data-dir="sr-en">SR→EN</button>
+      <button data-dir="sr-tr">SR→TR</button>
+    </nav>
+    <button id="gear" class="gear" title="Settings">⚙</button>
+  </header>
+
+  <section id="settings" class="settings" hidden>
+    <label for="key">Claude API key</label>
+    <div class="row">
+      <input id="key" type="password" placeholder="sk-ant-…" autocomplete="off">
+      <button id="save">Save</button>
+    </div>
+    <p id="key-msg" class="hint"></p>
+  </section>
+
+  <input id="text" class="text" type="text" placeholder="Type a word and press Enter" autocomplete="off" spellcheck="false">
+
+  <main id="out" class="out">
+    <p id="status" class="status"></p>
+    <div id="result" hidden>
+      <p id="translation" class="translation"></p>
+      <p id="grammar" class="grammar"></p>
+      <p id="alts" class="alts"></p>
+      <h2>Examples</h2>
+      <ul id="examples" class="examples"></ul>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+:root {
+  --bg: #fafaf9;
+  --fg: #1c1917;
+  --muted: #78716c;
+  --line: #e7e5e4;
+  --accent: #2563eb;
+  --accent-fg: #ffffff;
+  --field: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1917;
+    --fg: #f5f5f4;
+    --muted: #a8a29e;
+    --line: #3a3532;
+    --accent: #60a5fa;
+    --accent-fg: #0c0a09;
+    --field: #292524;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px 24px;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.dirs { display: flex; gap: 6px; }
+.dirs button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.gear { border: none; font-size: 18px; color: var(--muted); }
+
+.settings { margin-bottom: 16px; }
+.settings label { font-size: 13px; color: var(--muted); }
+.row { display: flex; gap: 8px; margin-top: 4px; }
+.row input { flex: 1; }
+
+input {
+  font: inherit;
+  color: var(--fg);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
+  outline: none;
+}
+input:focus { border-color: var(--accent); }
+.text { width: 100%; font-size: 17px; padding: 10px 14px; }
+
+.out { margin-top: 24px; }
+.status, .hint { color: var(--muted); margin: 0; }
+.translation { font-size: 28px; font-weight: 600; margin: 0; }
+.grammar, .alts { color: var(--muted); margin: 2px 0 0; font-size: 14px; }
+h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 24px 0 8px; }
+.examples { list-style: none; padding: 0; margin: 0; }
+.examples li { margin-bottom: 12px; }
+.examples .other { display: block; color: var(--muted); font-size: 14px; }
